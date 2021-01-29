@@ -1,0 +1,69 @@
+package de.phil.minigameplugin.listener;
+
+import de.phil.minigameplugin.Main;
+import de.phil.minigameplugin.commands.ItemShop;
+import de.phil.minigameplugin.commands.StartGame;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.*;
+
+public class SnowBreakEvent implements Listener {
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent e){
+        if (!StartGame.isStarted) return;
+
+
+        if (e.getBlock().getType().equals(Material.SNOW)) {
+            Player p = e.getPlayer();
+            UUID id = p.getUniqueId();
+            ArrayList<HashMap> points = JoinListener.points;
+            for (HashMap<UUID, Integer> map : points){
+                if (map.containsKey(id)){
+                    //Schnee zählen
+                    map.put(id, map.get(id) + 1);
+
+                    //theoretisch Scoreboard updaten
+                    //for (HashMap<UUID, String> teammap : ScoreboardsUtils.teamString){
+                      //  if (teammap.containsKey(id)){
+                       //     p.getScoreboard().getTeam(teammap.get(id)).setPrefix(p.getName() + "   " + map.get(id));
+                         //   Bukkit.broadcastMessage(teammap.toString());
+                        //}
+                    //}
+                }
+            }
+            //Spezial Fähigkeit von Diamantschaufel
+            if (e.getPlayer().getInventory().getItemInMainHand().equals(ItemShop.diamond_shovel)){
+                Block start_Block = e.getBlock();
+                for (int x = 0; x < 2; x++){
+                    for (int z = 0; z < 2; z++){
+
+                        int finalX = x;
+                        int finalZ = z;
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Block current_Block = start_Block.getRelative(finalX, 0, finalZ);
+                                if (current_Block.getType().equals(Material.SNOW)) {
+                                    current_Block.breakNaturally(ItemShop.diamond_shovel);
+                                    for (HashMap<UUID, Integer> map : points){
+                                        if (map.containsKey(id)) {
+                                            map.put(id, map.get(id) + 1);
+                                        }
+                                    }
+                                }
+                            }
+                        }.runTaskLater(Main.getInstance(), 5);
+
+                    }
+                }
+            }
+        }
+    }
+}
