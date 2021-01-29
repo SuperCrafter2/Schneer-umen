@@ -1,0 +1,62 @@
+package de.phil.minigameplugin.commands;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ItemShop implements CommandExecutor {
+
+    public static Inventory shop = Bukkit.createInventory(null, 3*9, "§6<<§bItemshop§6>>" );
+    public static ItemStack stone_shovel = new ItemStack(Material.STONE_SHOVEL);
+    public static ItemStack iron_shovel = new ItemStack(Material.IRON_SHOVEL);
+    public static ItemStack diamond_shovel = new ItemStack(Material.DIAMOND_SHOVEL);
+    private ItemMeta stone_meta = stone_shovel.getItemMeta();
+    private ItemMeta iron_meta = iron_shovel.getItemMeta();
+    private ItemMeta diamond_meta = diamond_shovel.getItemMeta();
+
+    @Override
+    public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
+        if (s instanceof Player){
+            Player p = (Player)s;
+            stone_meta.setUnbreakable(true);
+            stone_meta.setDisplayName("§everbesserte Schaufel");
+            stone_meta.setLore(listBuilder("Kosten: 50 Points"));
+            stone_meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            stone_shovel.setItemMeta(stone_meta);
+            iron_meta.setUnbreakable(true);
+            iron_meta.setDisplayName("§2starke Schaufel");
+            iron_meta.setLore(listBuilder("Kosten: 200 Points"));
+            iron_meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            iron_shovel.setItemMeta(iron_meta);
+            diamond_meta.setUnbreakable(true);
+            diamond_meta.setDisplayName("§3ULTIMATIVE SCHAUFEL");
+            diamond_meta.setLore(listBuilder("Kosten: 500 Points"));
+            diamond_meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            diamond_shovel.setItemMeta(diamond_meta);
+
+            shop.setItem(10, stone_shovel);
+            shop.setItem(13, iron_shovel);
+            shop.setItem(16, diamond_shovel);
+
+            p.openInventory(shop);
+        }
+        return false;
+    }
+
+    private List<String> listBuilder (String s){
+        List<String> lore = new ArrayList<>();
+        lore.add(s);
+
+        return lore;
+    }
+}
