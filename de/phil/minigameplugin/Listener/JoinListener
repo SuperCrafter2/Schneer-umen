@@ -1,0 +1,32 @@
+package de.phil.minigameplugin.listener;
+
+import de.phil.minigameplugin.commands.StartGame;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
+
+public class JoinListener implements Listener {
+
+    public static ArrayList<HashMap> points = new ArrayList<HashMap>();
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+        if (StartGame.isStarted){
+            //p.setScoreboard(ScoreboardsUtils.setScoreboard(p));
+        }
+
+        for (HashMap<UUID, Integer> map : points) {
+            if (map.containsKey(p.getUniqueId())) return;
+        }
+
+        HashMap<UUID, Integer> map = new HashMap<>();
+        map.put(p.getUniqueId(), 0);
+        points.add(map);
+    }
+}
