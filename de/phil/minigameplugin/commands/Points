@@ -1,0 +1,27 @@
+package de.phil.minigameplugin.commands;
+
+import de.phil.minigameplugin.listener.JoinListener;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+public class Points implements CommandExecutor {
+    @Override
+    public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
+        if (s instanceof Player && StartGame.isStarted){
+            Player p = (Player)s;
+            for (HashMap<UUID, Integer> map : JoinListener.points) {
+                if (map.containsKey(p.getUniqueId())) {
+                    p.sendMessage(map.get(p.getUniqueId()).toString());
+                }
+            }
+        }else if (s instanceof Player && !StartGame.isStarted){
+            s.sendMessage("Das spiel ist noch nicht gestartet. Verwende /start um zu starten.");
+        }
+        return false;
+    }
+}
