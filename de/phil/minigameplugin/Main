@@ -1,228 +1,38 @@
-package de.phil.minigameplugin.commands;
+package de.phil.minigameplugin;
 
-import de.phil.minigameplugin.Main;
+import de.phil.minigameplugin.commands.ItemShop;
+import de.phil.minigameplugin.commands.Points;
+import de.phil.minigameplugin.commands.StartGame;
+import de.phil.minigameplugin.listener.ItemClickEvent;
 import de.phil.minigameplugin.listener.JoinListener;
-import org.bukkit.*;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import de.phil.minigameplugin.listener.PlayerDiesEvent;
+import de.phil.minigameplugin.listener.SnowBreakEvent;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.UUID;
+public class Main extends JavaPlugin {
 
-public class StartGame implements CommandExecutor {
-
-    public static boolean isStarted;
-    public static boolean isEnded = false;
-    private BukkitTask taskId;
+    public static Main instance;
 
     @Override
-    public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
-        if (s instanceof Player) {
-            if (!isStarted) {
-                Bukkit.broadcastMessage(" ");
-                Bukkit.broadcastMessage("§8Das Minispiel wurde gestartet. Eure Challenge ist es möglichst viel Schnee abzubauen. Für jeden abgebauten Schnee erhaltet ihr ein Punkt. Für Punkte könnt ihr euch zudem bessere Schaufeln kaufen. Nutzt dazu einfach /shop. Ihr könnt übrigens alles was ihr in der Welt findet und abbaut benutzen. Wollt ihr eure momentanen Punktestand wissen benutzt /points. Am Ende bekommt ihr je nachdem wie viel Punkte ihr habt Equip. Dann ist PVP Phase. Wer dort gewinnt ist der endgültige Gewinner! Viel Spaß! Achja eigentlich wollte ich noch ein Scoreboard hinzufügen, dass hat aber leider nicht geklappt :(");
-                Bukkit.broadcastMessage(" ");
-                Player p = (Player)s;
-
-                //theoretisch Schnee setzten
-                //Chunk chunk = p.getLocation().getChunk();
-                //for (int x = 0; x < 16; x++) {
-                //    for (int z = 0; z < 16; z++) {
-                //        for (int y = 50; y < 150; y++) {
-                //            Block block = chunk.getBlock(x, y, z);
-                //            if (block.getType() != Material.AIR) {
-                //                Block top = block.getRelative(BlockFace.UP);
-                //                if (top.getType() == Material.AIR || top.getType() == Material.GRASS || top.getType() == Material.TALL_GRASS) {
-                //                    top.setType(Material.SNOW);
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
-
-                //Standard Schaufel und potion effect geben
-                isStarted = true;
-                ItemStack wood_shovel = new ItemStack(Material.WOODEN_SHOVEL);
-                ItemMeta meta = wood_shovel.getItemMeta();
-                meta.setDisplayName(ChatColor.GRAY + "Standard Schaufel");
-                meta.setUnbreakable(true);
-                wood_shovel.setItemMeta(meta);
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.getInventory().setItem(0, wood_shovel);
-                    PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 99999, 1);
-                    p.addPotionEffect(effect);
-                }
-
-                //for (Player p1 : Bukkit.getOnlinePlayers()){
-                //    p1.setScoreboard(ScoreboardsUtils.setScoreboard(p1));
-                //}
-
-                taskId = new BukkitRunnable() {
-                    int count = 1200;
-
-                    //Alle 30 Sekunden den timer um 30 Sekunden verringern
-                    @Override
-                    public void run() {
-                        if (count > 0) {
-                            Bukkit.broadcastMessage("Noch " + count / 20 + " Sekunden bevor das Spiel endet!");
-                            count = count - 600;
-                        } else {
-                            Bukkit.broadcastMessage("§cDie Zeit ist um!!!");
-                            isStarted = false;
-                            Bukkit.broadcastMessage("Es werden nun die Punkte gezählt...");
-
-                            //Punktezählung
-                            HashMap<UUID, Integer> winner = null;
-                            int current_points = 0;
-                            int winner_points = 0;
-                            for (HashMap<UUID, Integer> map : JoinListener.points) {
-                                if (winner == null) {
-                                    winner = map;
-                                }
-                                for (Integer value : map.values()) {
-                                    current_points = value;
-                                    Bukkit.broadcastMessage("current points: " + current_points);
-                                }
-                                for (Integer value1 : winner.values()) {
-                                    winner_points = value1;
-                                    Bukkit.broadcastMessage("winner points: " + winner_points);
-                                }
-                                if (current_points > winner_points) {
-                                    winner = map;
-                                }
-                            }
-                            HashMap<UUID, Integer> finalWinner = winner;
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    String name = "";
-                                    for (UUID id : finalWinner.keySet()) {
-                                        name = Bukkit.getPlayer(id).getDisplayName();
-                                    }
-
-                                    Bukkit.broadcastMessage("§6" + name + " hat die meisten Punkte!");
-                                    Bukkit.broadcastMessage("§6" + name + " hat die meisten Punkte!");
-                                    Bukkit.broadcastMessage("§6" + name + " hat die meisten Punkte!");
-                                    setEquip();
-                                    Bukkit.broadcastMessage(" ");
-                                    Bukkit.broadcastMessage("Jeder hat basierend auf seinen Punkten Equip erhalten.");
-                                    Bukkit.broadcastMessage("§4Nun kämpft!");
-                                    isEnded = true;
-                                }
-                            }.runTaskLater(Main.getInstance(), 40);
-                            cancelTask();
-                        }
-                    }
-                }.runTaskTimerAsynchronously(Main.getInstance(), 0, 600);
-
-            }
-        }
-        return false;
+    public void onEnable(){
+        instance = this;
+        getCommand("start").setExecutor(new StartGame());
+        getCommand("shop").setExecutor(new ItemShop());
+        getCommand("points").setExecutor(new Points());
+        PluginManager manager = getServer().getPluginManager();
+        manager.registerEvents(new JoinListener(), this);
+        manager.registerEvents(new SnowBreakEvent(),this);
+        manager.registerEvents(new ItemClickEvent(), this);
+        manager.registerEvents(new PlayerDiesEvent(), this);
     }
 
-    private void cancelTask(){
-        //Timer beenden
-        taskId.cancel();
+    @Override
+    public void onDisable() {
+
     }
 
-    private void setEquip() {
-        //Equip jedem Spieler entsprechend seiner Punkte geben
-        //50 points half gold, half leder, steinschwert, steinaxt
-        //100 points full gold, steinschwert, steinaxt
-        //150 points half iron, half gold, steinschwert, steinaxt
-        //200 points full iron, steinschwert, steinaxt
-        //250 points full iron, ironschwert, steinaxt
-        //300 points full iron, ironschwert, ironaxt
-        //350 ein dia piece sonst iron, ironschwert, ironaxt
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            for (HashMap<UUID, Integer> map : JoinListener.points) {
-                if (map.containsKey(p.getUniqueId())) {
-                    int current_points = map.get(p.getUniqueId());
-                    PlayerInventory inv = p.getInventory();
-                    if (current_points > 349) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
-                        inv.setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.IRON_SWORD));
-                        inv.setItem(1, new ItemStack(Material.IRON_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 299) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
-                        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.IRON_SWORD));
-                        inv.setItem(1, new ItemStack(Material.IRON_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 249) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
-                        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.IRON_SWORD));
-                        inv.setItem(1, new ItemStack(Material.STONE_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 199) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
-                        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.STONE_SWORD));
-                        inv.setItem(1, new ItemStack(Material.STONE_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 149) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.GOLDEN_HELMET));
-                        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.GOLDEN_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.STONE_SWORD));
-                        inv.setItem(1, new ItemStack(Material.STONE_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 99) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.GOLDEN_HELMET));
-                        inv.setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.GOLDEN_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.GOLDEN_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.STONE_SWORD));
-                        inv.setItem(1, new ItemStack(Material.STONE_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points > 49) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-                        inv.setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.GOLDEN_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.STONE_SWORD));
-                        inv.setItem(1, new ItemStack(Material.STONE_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    } else if (current_points < 49) {
-                        inv.clear();
-                        inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-                        inv.setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                        inv.setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
-                        inv.setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                        inv.setItem(0, new ItemStack(Material.STONE_SWORD));
-                        inv.setItem(1, new ItemStack(Material.WOODEN_AXE));
-                        inv.setItem(2, new ItemStack(Material.COOKED_BEEF, 64));
-                    }
-                }
-            }
-        }
+    public static Main getInstance() {
+        return instance;
     }
 }
