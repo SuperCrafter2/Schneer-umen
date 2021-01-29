@@ -1,0 +1,84 @@
+package de.phil.minigameplugin.listener;
+
+import de.phil.minigameplugin.commands.ItemShop;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+public class ItemClickEvent implements Listener {
+
+    @EventHandler
+    public void onClick(InventoryClickEvent e){
+        if (e.getInventory() != ItemShop.shop) return;
+        if (e.getCurrentItem() == null){
+            return;
+        } else {
+            Player p = (Player)e.getWhoClicked();
+            int points = 0;
+            if (e.getCurrentItem().equals(ItemShop.stone_shovel)){
+                e.setCancelled(true);
+                //Kauf für Steinschaufel
+                for (HashMap<UUID, Integer> map : JoinListener.points){
+                    if (map.containsKey(p.getUniqueId())){
+                        points = map.get(p.getUniqueId());
+                        if (points > 49){
+                            p.getInventory().setItem(0, ItemShop.stone_shovel);
+                            p.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                            PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 99999, 0);
+                            p.addPotionEffect(effect);
+                            map.replace(p.getUniqueId(), points, points - 50);
+                            Bukkit.broadcastMessage(points + "");
+                        }else{
+                            p.sendMessage("§4Du hast nicht genug Punkte um dir diesen Gegenstand zu kaufen!");
+                        }
+                    }
+                }
+            }
+
+            //Kauf für Eisenschaufel
+            if (e.getCurrentItem().equals(ItemShop.iron_shovel)){
+                e.setCancelled(true);
+                for (HashMap<UUID, Integer> map : JoinListener.points){
+                    if (map.containsKey(p.getUniqueId())){
+                        points = map.get(p.getUniqueId());
+                        if (points > 199){
+                            p.getInventory().setItem(0, ItemShop.iron_shovel );
+                            p.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                            map.replace(p.getUniqueId(), points, points - 200);
+                            Bukkit.broadcastMessage(points + "");
+                        }else{
+                            p.sendMessage("§4Du hast nicht genug Punkte um dir diesen Gegenstand zu kaufen!");
+                        }
+                    }
+                }
+            }
+
+            //Kauf für Diamantschaufel
+            if (e.getCurrentItem().equals(ItemShop.diamond_shovel)){
+                e.setCancelled(true);
+                for (HashMap<UUID, Integer> map : JoinListener.points){
+                    if (map.containsKey(p.getUniqueId())){
+                        points = map.get(p.getUniqueId());
+                        if (points > 499){
+                            p.getInventory().setItem(0, ItemShop.diamond_shovel);
+                            if (p.hasPotionEffect(PotionEffectType.SLOW_DIGGING)) {
+                                p.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                            }
+                            map.replace(p.getUniqueId(), points, points - 500);
+                            Bukkit.broadcastMessage(points + "");
+                        }else{
+                            p.sendMessage("§4Du hast nicht genug Punkte um dir diesen Gegenstand zu kaufen!");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
