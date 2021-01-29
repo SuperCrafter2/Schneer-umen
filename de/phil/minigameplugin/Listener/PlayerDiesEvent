@@ -1,0 +1,21 @@
+package de.phil.minigameplugin.listener;
+
+import de.phil.minigameplugin.commands.StartGame;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+
+public class PlayerDiesEvent implements Listener {
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent e){
+        if (StartGame.isEnded){
+            Player killer = e.getEntity().getKiller();
+            Player loser = e.getEntity().getPlayer();
+            Bukkit.broadcastMessage("Das Minispiel ist vorbei!");
+            Bukkit.broadcastMessage(killer.getDisplayName() + "hat gegen" + loser.getDisplayName() + "gewonnen!");
+        }
+    }
+}
